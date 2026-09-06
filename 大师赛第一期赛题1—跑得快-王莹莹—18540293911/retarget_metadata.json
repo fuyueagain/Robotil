@@ -1,0 +1,352 @@
+{
+  "robot": "linglong2",
+  "csvColumns": 37,
+  "qposLength": 37,
+  "root": {
+    "position": "qpos[0:3]",
+    "quatSourceOrder": "wxyz",
+    "csvQuatOrder": "xyzw",
+    "unityMapping": "pos=(-y,z,x), quat=(-y,z,x,-w)",
+    "qpos0": [
+      0.0,
+      0.0,
+      0.9,
+      1.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "joints": [
+    {
+      "csvIndex": 0,
+      "jointName": "left_hip_pitch_joint",
+      "qposAdr": 7,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -2.75762,
+        0.872665
+      ]
+    },
+    {
+      "csvIndex": 1,
+      "jointName": "left_hip_roll_joint",
+      "qposAdr": 8,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -0.523599,
+        2.0944
+      ]
+    },
+    {
+      "csvIndex": 2,
+      "jointName": "left_hip_yaw_joint",
+      "qposAdr": 9,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -2.79253,
+        2.79253
+      ]
+    },
+    {
+      "csvIndex": 3,
+      "jointName": "left_knee_joint",
+      "qposAdr": 10,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -0.174533,
+        1.90241
+      ]
+    },
+    {
+      "csvIndex": 4,
+      "jointName": "left_ankle_pitch_joint",
+      "qposAdr": 11,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -0.802851,
+        0.602139
+      ]
+    },
+    {
+      "csvIndex": 5,
+      "jointName": "left_ankle_roll_joint",
+      "qposAdr": 12,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -0.523599,
+        0.523599
+      ]
+    },
+    {
+      "csvIndex": 6,
+      "jointName": "right_hip_pitch_joint",
+      "qposAdr": 13,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -2.75762,
+        0.872665
+      ]
+    },
+    {
+      "csvIndex": 7,
+      "jointName": "right_hip_roll_joint",
+      "qposAdr": 14,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -2.0944,
+        0.523599
+      ]
+    },
+    {
+      "csvIndex": 8,
+      "jointName": "right_hip_yaw_joint",
+      "qposAdr": 15,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -2.79253,
+        2.79253
+      ]
+    },
+    {
+      "csvIndex": 9,
+      "jointName": "right_knee_joint",
+      "qposAdr": 16,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -0.174533,
+        1.90241
+      ]
+    },
+    {
+      "csvIndex": 10,
+      "jointName": "right_ankle_pitch_joint",
+      "qposAdr": 17,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -0.802851,
+        0.602139
+      ]
+    },
+    {
+      "csvIndex": 11,
+      "jointName": "right_ankle_roll_joint",
+      "qposAdr": 18,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -0.523599,
+        0.523599
+      ]
+    },
+    {
+      "csvIndex": 12,
+      "jointName": "waist_yaw_joint",
+      "qposAdr": 19,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -2.61799,
+        2.61799
+      ]
+    },
+    {
+      "csvIndex": 13,
+      "jointName": "waist_pitch_joint",
+      "qposAdr": 20,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -0.523599,
+        0.523599
+      ]
+    },
+    {
+      "csvIndex": 14,
+      "jointName": "head_yaw_joint",
+      "qposAdr": 21,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -1.5708,
+        1.5708
+      ]
+    },
+    {
+      "csvIndex": 15,
+      "jointName": "head_pitch_joint",
+      "qposAdr": 22,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -0.785398,
+        0.785398
+      ]
+    },
+    {
+      "csvIndex": 16,
+      "jointName": "left_shoulder_pitch_joint",
+      "qposAdr": 23,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -2.96706,
+        2.96706
+      ]
+    },
+    {
+      "csvIndex": 17,
+      "jointName": "left_shoulder_roll_joint",
+      "qposAdr": 24,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -0.0872665,
+        3.05433
+      ]
+    },
+    {
+      "csvIndex": 18,
+      "jointName": "left_shoulder_yaw_joint",
+      "qposAdr": 25,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -2.96706,
+        2.96706
+      ]
+    },
+    {
+      "csvIndex": 19,
+      "jointName": "left_elbow_joint",
+      "qposAdr": 26,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -0.785398,
+        1.5708
+      ]
+    },
+    {
+      "csvIndex": 20,
+      "jointName": "left_wrist_roll_joint",
+      "qposAdr": 27,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -2.96706,
+        2.96706
+      ]
+    },
+    {
+      "csvIndex": 21,
+      "jointName": "left_wrist_pitch_joint",
+      "qposAdr": 28,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -1.39626,
+        1.39626
+      ]
+    },
+    {
+      "csvIndex": 22,
+      "jointName": "left_wrist_yaw_joint",
+      "qposAdr": 29,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -1.39626,
+        1.39626
+      ]
+    },
+    {
+      "csvIndex": 23,
+      "jointName": "right_shoulder_pitch_joint",
+      "qposAdr": 30,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -2.96706,
+        2.96706
+      ]
+    },
+    {
+      "csvIndex": 24,
+      "jointName": "right_shoulder_roll_joint",
+      "qposAdr": 31,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -3.05433,
+        0.0872665
+      ]
+    },
+    {
+      "csvIndex": 25,
+      "jointName": "right_shoulder_yaw_joint",
+      "qposAdr": 32,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -2.96706,
+        2.96706
+      ]
+    },
+    {
+      "csvIndex": 26,
+      "jointName": "right_elbow_joint",
+      "qposAdr": 33,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -0.785398,
+        1.5708
+      ]
+    },
+    {
+      "csvIndex": 27,
+      "jointName": "right_wrist_roll_joint",
+      "qposAdr": 34,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -2.96706,
+        2.96706
+      ]
+    },
+    {
+      "csvIndex": 28,
+      "jointName": "right_wrist_pitch_joint",
+      "qposAdr": 35,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -1.39626,
+        1.39626
+      ]
+    },
+    {
+      "csvIndex": 29,
+      "jointName": "right_wrist_yaw_joint",
+      "qposAdr": 36,
+      "qpos0": 0.0,
+      "limited": true,
+      "range": [
+        -1.39626,
+        1.39626
+      ]
+    }
+  ]
+}
