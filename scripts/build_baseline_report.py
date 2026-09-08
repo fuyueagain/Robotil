@@ -18,6 +18,15 @@ from typing import Any
 
 ALLOWED_IDENTITIES = frozenset({"B84-reported", "B84-reproduced"})
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+CURRENT_REPRODUCED_PARAMETERS = frozenset(
+    {
+        "smooth_alpha",
+        "height_adjust",
+        "root_origin_offset",
+        "camera_follow",
+        "ground_clearance",
+    }
+)
 REQUIRED_DESCRIPTOR_FIELDS = frozenset(
     {
         "schema_version",
@@ -60,6 +69,29 @@ def _resolve_repository_path(value: Any, repository_root: Path, field: str) -> P
     except ValueError as error:
         raise DescriptorError(f"{field} resolves outside the repository") from error
     return resolved
+
+
+def _paths_overlap(first: Path, second: Path) -> bool:
+    """Return whether either resolved path is the other path or its descendant."""
+    try:
+        first.relative_to(second)
+        return True
+    except ValueError:
+        pass
+    try:
+        second.relative_to(first)
+        return True
+    except ValueError:
+        return False
+
+
+def _resolve_descriptor_field(descriptor: dict[str, Any], field_path: str) -> Any:
+    current: Any = descriptor
+    for component in field_path.split("."):
+        if not component or not isinstance(current, dict) or component not in current:
+            raise DescriptorError(f"unknown_fields path does not exist: {field_path}")
+        current = current[component]
+    return current
 
 
 def validate_descriptor(
@@ -119,11 +151,26 @@ def validate_descriptor(
         names.add(name)
         if artifact.get("kind") not in {"qpos_csv", "retarget_metadata", "supplementary"}:
             raise DescriptorError(f"artifacts[{index}].kind is not supported")
+        if not isinstance(artifact.get("path"), str) or not artifact["path"]:
+            raise DescriptorError(
+                f"artifacts[{index}].path must be a non-empty relative path"
+            )
 
     if not isinstance(descriptor["unknown_fields"], list) or not all(
         isinstance(value, str) for value in descriptor["unknown_fields"]
     ):
         raise DescriptorError("unknown_fields must be a list of strings")
+    for field_path in descriptor["unknown_fields"]:
+        if _resolve_descriptor_field(descriptor, field_path) is not None:
+            raise DescriptorError(f"unknown_fields path must have a null value: {field_path}")
+
+    parameters = _as_mapping(descriptor["parameters"], "parameters")
+    if descriptor["identity"] == "B84-reported":
+        for parameter_name in CURRENT_REPRODUCED_PARAMETERS:
+            if parameters.get(parameter_name) is not None:
+                raise DescriptorError(
+                    f"B84-reported parameters.{parameter_name} must be null"
+                )
     if not isinstance(descriptor["critical_packages"], list) or not all(
         isinstance(value, str) and value for value in descriptor["critical_packages"]
     ):
@@ -154,7 +201,7 @@ def _inspect_qpos_csv(path: Path, expected: dict[str, Any], label: str) -> tuple
     errors: list[str] = []
     try:
         with path.open("r", encoding="utf-8", newline="") as source:
-            for row_number, row in enumerate(csv.reader(source), start=1):
+            for row_number, row in enumerate(csv.reader(source, strict=True), start=1):
                 if not row:
                     errors.append(f"{label} CSV row {row_number} is empty")
                     continue
@@ -352,8 +399,13 @@ def build_report(
         _resolve_repository_path(artifact["path"], root, f"artifact {artifact['name']}")
         for artifact in descriptor["artifacts"]
     ]
-    if any(path in {json_path, markdown_path} for path in artifact_paths):
-        raise DescriptorError("output directory would overwrite a declared source artifact")
+    output_paths = (destination, json_path, markdown_path)
+    if any(
+        _paths_overlap(output_path, artifact_path)
+        for output_path in output_paths
+        for artifact_path in artifact_paths
+    ):
+        raise DescriptorError("output directory conflicts with a declared source artifact")
 
     errors: list[str] = []
     artifact_reports: list[dict[str, Any]] = []

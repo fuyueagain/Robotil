@@ -1,5 +1,7 @@
 import hashlib
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -169,6 +171,23 @@ class BaselineReportTests(unittest.TestCase):
                 self.assertFalse(result["report"]["validation"]["passed"])
                 self.assertTrue(any(name in error or "row" in error for error in errors))
 
+    def test_unclosed_csv_quote_fails_even_when_default_parsing_yields_37_floats(self):
+        csv_path = self.root / "artifacts" / "qpos.csv"
+        csv_path.parent.mkdir()
+        csv_path.write_text(
+            ",".join([str(value) for value in range(36)] + ['"36']),
+            encoding="utf-8",
+        )
+
+        descriptor = _descriptor()
+        descriptor["expected"]["frame_count"] = 1
+        result = self.build(descriptor)
+
+        self.assertFalse(result["report"]["validation"]["passed"])
+        self.assertTrue(
+            any("could not read qpos CSV" in error for error in result["report"]["validation"]["errors"])
+        )
+
     def test_metadata_mismatch_fails_the_contract_and_is_reported(self):
         metadata_path = self.root / "artifacts" / "metadata.json"
         metadata_path.parent.mkdir()
@@ -188,12 +207,82 @@ class BaselineReportTests(unittest.TestCase):
         self.assertIsNone(deterministic["descriptor"]["parameters"]["smooth_alpha"])
         self.assertIn("parameters.smooth_alpha", deterministic["descriptor"]["unknown_fields"])
 
+    def test_rejects_contradictory_unknown_fields_and_reported_current_defaults(self):
+        cases = []
+
+        non_null_unknown = _descriptor("B84-reported")
+        non_null_unknown["parameters"]["smooth_alpha"] = 0.35
+        cases.append(("unknown_field_is_not_null", non_null_unknown))
+
+        missing_unknown_path = _descriptor("B84-reported")
+        missing_unknown_path["unknown_fields"].append("commands.not_recorded")
+        cases.append(("unknown_field_path_is_missing", missing_unknown_path))
+
+        reported_current_default = _descriptor("B84-reported")
+        reported_current_default["parameters"]["smooth_alpha"] = 0.35
+        reported_current_default["unknown_fields"].remove("parameters.smooth_alpha")
+        cases.append(("reported_current_default_is_not_history", reported_current_default))
+
+        for name, descriptor in cases:
+            with self.subTest(name=name):
+                with self.assertRaises(build_baseline_report.DescriptorError):
+                    self.build(descriptor)
+
     def test_path_traversal_in_an_artifact_is_rejected(self):
         descriptor = _descriptor()
         descriptor["artifacts"][0]["path"] = "../outside.csv"
 
         with self.assertRaises(build_baseline_report.DescriptorError):
             self.build(descriptor)
+
+    def test_cli_rejects_an_artifact_missing_path_without_a_traceback(self):
+        descriptor = _descriptor()
+        del descriptor["artifacts"][0]["path"]
+        self.write_descriptor(descriptor)
+
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(Path(build_baseline_report.__file__)),
+                str(self.descriptor_path),
+                str(self.output_dir),
+                "--repository-root",
+                str(self.root),
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("error: artifacts[0].path must be a non-empty relative path", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+
+    def test_rejects_output_directories_that_conflict_with_declared_artifacts(self):
+        cases = {
+            "same_path": ("source-same", "source-same"),
+            "output_inside_source_directory": (
+                "source-parent",
+                "source-parent/reports",
+            ),
+            "source_inside_output_directory": (
+                "reports/source-child.csv",
+                "reports",
+            ),
+        }
+        for name, (artifact_path, output_path) in cases.items():
+            with self.subTest(name=name):
+                descriptor = _descriptor()
+                descriptor["artifacts"][0]["path"] = artifact_path
+                self.write_descriptor(descriptor)
+                (self.root / artifact_path).mkdir(parents=True, exist_ok=True)
+
+                with self.assertRaises(build_baseline_report.DescriptorError):
+                    build_baseline_report.build_report(
+                        self.descriptor_path,
+                        self.root / output_path,
+                        repository_root=self.root,
+                    )
 
     def test_identities_produce_distinct_report_filenames(self):
         reported_path = self.root / "reported.json"
