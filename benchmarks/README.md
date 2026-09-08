@@ -19,3 +19,20 @@ D:/Miniconda/Scripts/conda.exe run --no-capture-output -n wham_gmr python script
 Each command writes identity-specific JSON and Markdown reports. Missing local
 generated artifacts are recorded as missing evidence; present CSV and metadata
 artifacts are checked against the declared 37-value linglong2 qpos contract.
+
+## LingLong2 Foot Geometry
+
+Regenerate the checked-in body-local foot geometry calibration from the
+repository root:
+
+```powershell
+D:/Miniconda/Scripts/conda.exe run --no-capture-output -n wham_gmr python scripts/calibrate_foot_geometry.py assets/LingLong2.0/scene.xml benchmarks/geometry --repository-root .
+```
+
+`benchmarks/geometry/foot-geometry-linglong2.json` is the authoritative
+machine-readable snapshot, with a Markdown companion for review. Later contact
+metrics consume its named, source-indexed `sole_samples`, rather than ankle body
+origins. The calibrated ankle-frame vertical offset is a static geometric
+reference only; it does not establish dynamic contact quality, support, or
+non-penetration. `GROUND_CLEARANCE_DICT["linglong2"]` remains an initial
+runtime estimate and is not changed by this calibration.

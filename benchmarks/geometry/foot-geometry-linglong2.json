@@ -1,0 +1,457 @@
+{
+  "deterministic": {
+    "feet": {
+      "left": {
+        "anchor_body": "left_ankle_roll_link",
+        "ankle_origin_to_sole_vertical_offset": 0.07600054730080329,
+        "coordinate_frame": "anchor body-local metres; +Z is the anchor body-local vertical axis",
+        "geometry_inventory": [
+          {
+            "collision_capable": false,
+            "pos": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "quat_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "size": [],
+            "source_file": "assets/LingLong2.0/LingLong2.0.xml",
+            "source_geom_index": 0,
+            "type": "mesh"
+          },
+          {
+            "collision_capable": true,
+            "pos": [
+              0.02,
+              0.0,
+              -0.069
+            ],
+            "quat_wxyz": [
+              0.707105,
+              0.0,
+              -0.707108,
+              0.0
+            ],
+            "size": [
+              0.007,
+              0.129
+            ],
+            "source_file": "assets/LingLong2.0/LingLong2.0.xml",
+            "source_geom_index": 1,
+            "type": "cylinder"
+          },
+          {
+            "collision_capable": true,
+            "pos": [
+              0.02,
+              -0.04,
+              -0.069
+            ],
+            "quat_wxyz": [
+              0.707105,
+              0.0,
+              -0.707108,
+              0.0
+            ],
+            "size": [
+              0.007,
+              0.109
+            ],
+            "source_file": "assets/LingLong2.0/LingLong2.0.xml",
+            "source_geom_index": 2,
+            "type": "cylinder"
+          },
+          {
+            "collision_capable": true,
+            "pos": [
+              0.02,
+              0.04,
+              -0.069
+            ],
+            "quat_wxyz": [
+              0.707105,
+              0.0,
+              -0.707108,
+              0.0
+            ],
+            "size": [
+              0.007,
+              0.109
+            ],
+            "source_file": "assets/LingLong2.0/LingLong2.0.xml",
+            "source_geom_index": 3,
+            "type": "cylinder"
+          },
+          {
+            "collision_capable": true,
+            "pos": [
+              0.02,
+              -0.02,
+              -0.069
+            ],
+            "quat_wxyz": [
+              0.707105,
+              0.0,
+              -0.707108,
+              0.0
+            ],
+            "size": [
+              0.007,
+              0.129
+            ],
+            "source_file": "assets/LingLong2.0/LingLong2.0.xml",
+            "source_geom_index": 4,
+            "type": "cylinder"
+          },
+          {
+            "collision_capable": true,
+            "pos": [
+              0.02,
+              0.02,
+              -0.069
+            ],
+            "quat_wxyz": [
+              0.707105,
+              0.0,
+              -0.707108,
+              0.0
+            ],
+            "size": [
+              0.007,
+              0.129
+            ],
+            "source_file": "assets/LingLong2.0/LingLong2.0.xml",
+            "source_geom_index": 5,
+            "type": "cylinder"
+          }
+        ],
+        "minimum_z": -0.07600054730080329,
+        "sole_samples": [
+          {
+            "axis": [
+              -0.9999999999910001,
+              -0.0,
+              -4.242642374308048e-06
+            ],
+            "body_local_xyz": [
+              -0.10900002969733563,
+              0.0,
+              -0.07600054730080329
+            ],
+            "half_length": 0.129,
+            "name": "left_sole_00",
+            "radius": 0.007,
+            "source_geom_index": 1
+          },
+          {
+            "axis": [
+              -0.9999999999910001,
+              -0.0,
+              -4.242642374308048e-06
+            ],
+            "body_local_xyz": [
+              -0.08900002969751562,
+              -0.04,
+              -0.0760004624479558
+            ],
+            "half_length": 0.109,
+            "name": "left_sole_01",
+            "radius": 0.007,
+            "source_geom_index": 2
+          },
+          {
+            "axis": [
+              -0.9999999999910001,
+              -0.0,
+              -4.242642374308048e-06
+            ],
+            "body_local_xyz": [
+              -0.08900002969751562,
+              0.04,
+              -0.0760004624479558
+            ],
+            "half_length": 0.109,
+            "name": "left_sole_02",
+            "radius": 0.007,
+            "source_geom_index": 3
+          },
+          {
+            "axis": [
+              -0.9999999999910001,
+              -0.0,
+              -4.242642374308048e-06
+            ],
+            "body_local_xyz": [
+              -0.10900002969733563,
+              -0.02,
+              -0.07600054730080329
+            ],
+            "half_length": 0.129,
+            "name": "left_sole_03",
+            "radius": 0.007,
+            "source_geom_index": 4
+          },
+          {
+            "axis": [
+              -0.9999999999910001,
+              -0.0,
+              -4.242642374308048e-06
+            ],
+            "body_local_xyz": [
+              -0.10900002969733563,
+              0.02,
+              -0.07600054730080329
+            ],
+            "half_length": 0.129,
+            "name": "left_sole_04",
+            "radius": 0.007,
+            "source_geom_index": 5
+          }
+        ]
+      },
+      "right": {
+        "anchor_body": "right_ankle_roll_link",
+        "ankle_origin_to_sole_vertical_offset": 0.07600054730080329,
+        "coordinate_frame": "anchor body-local metres; +Z is the anchor body-local vertical axis",
+        "geometry_inventory": [
+          {
+            "collision_capable": false,
+            "pos": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "quat_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "size": [],
+            "source_file": "assets/LingLong2.0/LingLong2.0.xml",
+            "source_geom_index": 0,
+            "type": "mesh"
+          },
+          {
+            "collision_capable": true,
+            "pos": [
+              0.02,
+              0.0,
+              -0.069
+            ],
+            "quat_wxyz": [
+              0.707105,
+              0.0,
+              -0.707108,
+              0.0
+            ],
+            "size": [
+              0.007,
+              0.129
+            ],
+            "source_file": "assets/LingLong2.0/LingLong2.0.xml",
+            "source_geom_index": 1,
+            "type": "cylinder"
+          },
+          {
+            "collision_capable": true,
+            "pos": [
+              0.02,
+              -0.04,
+              -0.069
+            ],
+            "quat_wxyz": [
+              0.707105,
+              0.0,
+              -0.707108,
+              0.0
+            ],
+            "size": [
+              0.007,
+              0.109
+            ],
+            "source_file": "assets/LingLong2.0/LingLong2.0.xml",
+            "source_geom_index": 2,
+            "type": "cylinder"
+          },
+          {
+            "collision_capable": true,
+            "pos": [
+              0.02,
+              0.04,
+              -0.069
+            ],
+            "quat_wxyz": [
+              0.707105,
+              0.0,
+              -0.707108,
+              0.0
+            ],
+            "size": [
+              0.007,
+              0.109
+            ],
+            "source_file": "assets/LingLong2.0/LingLong2.0.xml",
+            "source_geom_index": 3,
+            "type": "cylinder"
+          },
+          {
+            "collision_capable": true,
+            "pos": [
+              0.02,
+              -0.02,
+              -0.069
+            ],
+            "quat_wxyz": [
+              0.707105,
+              0.0,
+              -0.707108,
+              0.0
+            ],
+            "size": [
+              0.007,
+              0.129
+            ],
+            "source_file": "assets/LingLong2.0/LingLong2.0.xml",
+            "source_geom_index": 4,
+            "type": "cylinder"
+          },
+          {
+            "collision_capable": true,
+            "pos": [
+              0.02,
+              0.02,
+              -0.069
+            ],
+            "quat_wxyz": [
+              0.707105,
+              0.0,
+              -0.707108,
+              0.0
+            ],
+            "size": [
+              0.007,
+              0.129
+            ],
+            "source_file": "assets/LingLong2.0/LingLong2.0.xml",
+            "source_geom_index": 5,
+            "type": "cylinder"
+          }
+        ],
+        "minimum_z": -0.07600054730080329,
+        "sole_samples": [
+          {
+            "axis": [
+              -0.9999999999910001,
+              -0.0,
+              -4.242642374308048e-06
+            ],
+            "body_local_xyz": [
+              -0.10900002969733563,
+              0.0,
+              -0.07600054730080329
+            ],
+            "half_length": 0.129,
+            "name": "right_sole_00",
+            "radius": 0.007,
+            "source_geom_index": 1
+          },
+          {
+            "axis": [
+              -0.9999999999910001,
+              -0.0,
+              -4.242642374308048e-06
+            ],
+            "body_local_xyz": [
+              -0.08900002969751562,
+              -0.04,
+              -0.0760004624479558
+            ],
+            "half_length": 0.109,
+            "name": "right_sole_01",
+            "radius": 0.007,
+            "source_geom_index": 2
+          },
+          {
+            "axis": [
+              -0.9999999999910001,
+              -0.0,
+              -4.242642374308048e-06
+            ],
+            "body_local_xyz": [
+              -0.08900002969751562,
+              0.04,
+              -0.0760004624479558
+            ],
+            "half_length": 0.109,
+            "name": "right_sole_02",
+            "radius": 0.007,
+            "source_geom_index": 3
+          },
+          {
+            "axis": [
+              -0.9999999999910001,
+              -0.0,
+              -4.242642374308048e-06
+            ],
+            "body_local_xyz": [
+              -0.10900002969733563,
+              -0.02,
+              -0.07600054730080329
+            ],
+            "half_length": 0.129,
+            "name": "right_sole_03",
+            "radius": 0.007,
+            "source_geom_index": 4
+          },
+          {
+            "axis": [
+              -0.9999999999910001,
+              -0.0,
+              -4.242642374308048e-06
+            ],
+            "body_local_xyz": [
+              -0.10900002969733563,
+              0.02,
+              -0.07600054730080329
+            ],
+            "half_length": 0.129,
+            "name": "right_sole_04",
+            "radius": 0.007,
+            "source_geom_index": 5
+          }
+        ]
+      }
+    },
+    "ground_clearance_comparison": {
+      "absolute_delta": 0.0010005473008032895,
+      "calibrated_vertical_offset": 0.07600054730080329,
+      "configured_value": 0.075,
+      "interpretation": "The configured value remains an initial estimate; this geometric reference does not establish dynamic contact, support, or non-penetration.",
+      "signed_delta_configured_minus_calibrated": -0.0010005473008032895
+    },
+    "robot": "linglong2",
+    "scene_path": "assets/LingLong2.0/scene.xml",
+    "source_files": [
+      {
+        "path": "assets/LingLong2.0/scene.xml",
+        "sha256": "c13f79b13d065711bc9aedde926d5dbe0fcb313d7f8b90833d69d8c54e295436"
+      },
+      {
+        "path": "assets/LingLong2.0/LingLong2.0.xml",
+        "sha256": "e1b914ec0b1220a7a03700c95ab65f343514fe0c1ab2ed4dfd502c3c168de457"
+      }
+    ],
+    "symmetry_tolerance_metres": 1e-06
+  },
+  "runtime_generation_context": {
+    "python_version": "3.10.21",
+    "tool": "scripts/calibrate_foot_geometry.py"
+  },
+  "schema_version": 1
+}
