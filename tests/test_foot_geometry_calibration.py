@@ -90,6 +90,28 @@ class FootGeometryCalibrationTests(unittest.TestCase):
 
         self.assertAlmostEqual(result[2], 0.9, places=12)
 
+    def test_tilted_cylinder_support_uses_downward_radial_projection(self):
+        # For a +60 degree rotation around Y, axis=(sqrt(3)/2, 0, 1/2).
+        # Hand calculation gives axial=(-sqrt(3)/4, 0, -1/4) and radial=
+        # (1/5, 0, -sqrt(3)/5) for radius=0.4 and half-length=0.5.
+        result = calibrate_foot_geometry.cylinder_support_point(
+            (1.0, 2.0, 3.0),
+            (0.8660254037844386, 0.0, 0.5, 0.0),
+            0.4,
+            0.5,
+        )
+
+        self.assertAlmostEqual(result[0], 0.7669872981077807, places=12)
+        self.assertAlmostEqual(result[1], 2.0, places=12)
+        self.assertAlmostEqual(result[2], 2.4035898384862247, places=12)
+        radial = (
+            result[0] - 1.0 + 0.4330127018922193,
+            result[1] - 2.0,
+            result[2] - 3.0 + 0.25,
+        )
+        axis = (0.8660254037844386, 0.0, 0.5)
+        self.assertAlmostEqual(sum(a * b for a, b in zip(radial, axis)), 0.0, places=12)
+
     def test_inventory_distinguishes_visual_mesh_and_collision_cylinders(self):
         left = '<geom type="mesh" contype="0" conaffinity="0" mesh="left-foot"/>' + _cylinder()
         self.write_fixture(left, _cylinder())
@@ -161,6 +183,49 @@ class FootGeometryCalibrationTests(unittest.TestCase):
         with self.assertRaises(calibrate_foot_geometry.CalibrationError):
             self.calibration()
 
+    def test_symmetry_accepts_reversed_axis_for_same_undirected_cylinder(self):
+        left = {
+            "sole_samples": [{
+                "body_local_xyz": [0.1, -0.2, -0.3],
+                "radius": 0.01,
+                "half_length": 0.1,
+                "axis": [0.6, 0.2, 0.7745966692414834],
+            }],
+        }
+        right = {
+            "sole_samples": [{
+                "body_local_xyz": [0.1, 0.2, -0.3],
+                "radius": 0.01,
+                "half_length": 0.1,
+                # Mirrored Y axis, then globally reversed: same cylinder axis.
+                "axis": [-0.6, 0.2, -0.7745966692414834],
+            }],
+        }
+
+        calibrate_foot_geometry._validate_symmetry(left, right)
+
+    def test_symmetry_rejects_axis_not_equivalent_under_mirror_or_reversal(self):
+        left = {
+            "sole_samples": [{
+                "body_local_xyz": [0.1, -0.2, -0.3],
+                "radius": 0.01,
+                "half_length": 0.1,
+                "axis": [0.6, 0.2, 0.7745966692414834],
+            }],
+        }
+        right = {
+            "sole_samples": [{
+                "body_local_xyz": [0.1, 0.2, -0.3],
+                "radius": 0.01,
+                "half_length": 0.1,
+                # Equal component magnitudes, but neither the mirror nor -mirror of left.
+                "axis": [0.6, 0.2, -0.7745966692414834],
+            }],
+        }
+
+        with self.assertRaises(calibrate_foot_geometry.CalibrationError):
+            calibrate_foot_geometry._validate_symmetry(left, right)
+
     def test_real_linglong_scene_has_five_samples_per_side_and_expected_minima(self):
         repository_root = Path(__file__).resolve().parents[1]
         report = calibrate_foot_geometry.build_calibration(
@@ -183,6 +248,33 @@ class FootGeometryCalibrationTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertIn("error:", result.stderr)
         self.assertNotIn("Traceback", result.stderr)
+
+    def test_cli_rejects_invalid_pos_and_quaternions_without_traceback(self):
+        cases = {
+            "invalid_pos": _cylinder(pos="not-a-vector"),
+            "zero_quaternion": _cylinder(quat="0 0 0 0"),
+            "nonfinite_quaternion": _cylinder(quat="nan 0 0 1"),
+        }
+        for name, invalid_left_geom in cases.items():
+            with self.subTest(name=name):
+                self.write_fixture(invalid_left_geom, _cylinder())
+                result = subprocess.run(
+                    [
+                        sys.executable,
+                        str(Path(calibrate_foot_geometry.__file__)),
+                        str(self.scene),
+                        str(self.root / "output"),
+                        "--repository-root",
+                        str(self.root),
+                    ],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("error:", result.stderr)
+                self.assertNotIn("Traceback", result.stderr)
 
     def test_writer_emits_identity_stable_json_and_markdown(self):
         self.write_fixture(_cylinder(), _cylinder())

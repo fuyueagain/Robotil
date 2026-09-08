@@ -115,7 +115,7 @@ def cylinder_support_point(centre, quaternion, radius, half_length):
     axis_z = axis[2]
     axial_direction = 1.0 if axis_z >= 0.0 else -1.0
     axial = tuple(-axial_direction * half_length * component for component in axis)
-    down_projection = (-axis[0] * axis_z, -axis[1] * axis_z, -1.0 + axis_z * axis_z)
+    down_projection = (axis[0] * axis_z, axis[1] * axis_z, -1.0 + axis_z * axis_z)
     projection_length = math.sqrt(sum(component * component for component in down_projection))
     if projection_length > 1e-15:
         radial = tuple(radius * component / projection_length for component in down_projection)
@@ -212,9 +212,16 @@ def _anchors_from_sources(sources):
 def _symmetry_signature(sample):
     point = sample["body_local_xyz"]
     axis = sample["axis"]
+    canonical_axis = tuple(axis)
+    for component in canonical_axis:
+        if abs(component) > 1e-15:
+            if component < 0.0:
+                canonical_axis = tuple(-value for value in canonical_axis)
+            break
+    mirrored_axis = (canonical_axis[0], abs(canonical_axis[1]), canonical_axis[2])
     return (
         point[0], abs(point[1]), point[2], sample["radius"], sample["half_length"],
-        axis[0], abs(axis[1]), axis[2],
+        *mirrored_axis,
     )
 
 
