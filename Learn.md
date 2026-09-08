@@ -66,7 +66,6 @@ root  = ROBOT_BASE_DICT[robot]                       # ③ 找“腰”（根节
 cfg   = IK_CONFIG_DICT[motion_source][robot]         # ② 拿翻译说明书
 cam   = VIEWER_CAM_DISTANCE_DICT.get(robot, 2.0)     # ④ 相机站多远（缺省 2 米）
 ```
-
 ### 新增一台机器人要记得
 前三张表（XML / base / 相机）的机器人代号**一一对应**（目前都是 22 个），加机器人时要同步补：模型路径、根节点名、相机距离，以及 `IK_CONFIG_DICT` 里需要的动作翻译配置，否则重定向会查不到而报错。
 
@@ -703,3 +702,324 @@ ground_clearance=_ground_clearance_for_robot(state["robot"]),
 5. 重新运行并用画面验证，必要时按毫米级微调。
 
 因此，这个修复不是“所有机器人统一加 7.5 cm”，而是把原来写死的贴地假设改成了**每台机器人可以单独配置**的机制：灵龙 2 配 `0.075`，其他机器人默认 `0.0`，只有确认自身模型存在同类偏差时才增加对应数值。
+
+---
+
+## 问题 7：相机视角变化时，WHAM + GMR 为什么看起来只迁移动作、机器人根部却不动
+
+### 结论先行
+
+当前项目**没有通过 GMR 把机器人根部硬锁死**，也不是 GMR 在运行时“学习”了目标人物的动作。
+
+实际存在两条不同的 WHAM 链路：
+
+| 链路 | 相机运动处理 | 当前状态 |
+| --- | --- | --- |
+| 标准离线 WHAM | 利用 DPVO 估计相机旋转，由 WHAM 尽量区分“相机在动”和“人在动”，再恢复人体世界坐标运动 | 代码具备该能力 |
+| `run.ps1 -> handle_wham_gmr.py` 集成流式链路 | `cam_angvel` 被直接设为零，没有接入 DPVO 动态相机补偿 | 当前项目实际运行方式 |
+
+机器人在结果视频中看起来根部不动，很大程度上可能是因为 **MuJoCo 预览相机默认跟随机器人**，而不是机器人在世界坐标中的根位置真的没有变化。
+
+> 准确表述：WHAM 预测人体的身体动作和根轨迹，GMR 将二者都映射到机器人；预览相机跟随会让根平移在画面中不明显。标准离线 WHAM 可以利用 DPVO 区分相机旋转和人体运动，但当前集成流式链路尚未启用这部分能力。
+
+### 1. 先区分三种“相机/坐标变化”
+
+| 概念 | 当前处理方式 | 是否影响动作数据 |
+| --- | --- | --- |
+| 输入视频相机运动 | 标准离线 WHAM 可通过 DPVO 估计相机角速度；当前集成链路将其置零 | 会影响 WHAM 对人体世界运动的判断 |
+| WHAM Y-up -> MuJoCo Z-up | 使用固定的 X 轴 90 度坐标变换 | 会改变整套姿态和位移的坐标表达，但不是逐帧相机跟踪 |
+| MuJoCo 预览相机 | 默认跟随机器人包围盒中心 | 只影响“怎么看”，不修改 CSV、PKL 或 `qpos` |
+
+输入视频相机和 MuJoCo 输出相机是两个完全不同的对象：前者参与人体运动估计，后者只负责渲染展示。
+
+### 2. 标准离线 WHAM 如何区分相机变化和人体动作
+
+完整的离线 WHAM 流程会先通过 DPVO 获得相机轨迹，再从相邻帧的相机旋转计算 `cam_angvel`：
+
+```text
+DPVO 相机姿态
+  -> camera-to-world / world-to-camera 旋转
+  -> 相邻帧旋转差
+  -> 相机角速度 cam_angvel
+```
+
+对应实现：[dataset_custom.py](lib/data/datasets/dataset_custom.py#L15)。
+
+这里有一个重要限制：当前 `convert_dpvo_to_cam_angvel()` 只使用 DPVO 轨迹的旋转四元数，没有直接使用相机平移。因此它主要帮助处理摇摄、俯仰和旋转镜头；相机前后平移、变焦产生的尺度与深度变化，仍主要依赖 WHAM 的运动先验判断。
+
+WHAM 的 `TrajectoryDecoder` 同时接收以下信息：
+
+| 输入 | 含义 |
+| --- | --- |
+| `motion_context` | 人体时序运动特征 |
+| `last_root` | 上一时刻的人体根姿态 |
+| `cam_angvel` | 相机自身的旋转变化 |
+
+然后预测：
+
+| 输出 | 含义 |
+| --- | --- |
+| `pred_root` | 人体根部在世界坐标系中的方向 |
+| `pred_vel` | 人体根部自身坐标系中的速度 |
+
+对应实现：[modules.py](lib/models/layers/modules.py#L160)。
+
+理想情况下，模型会进行如下判断：
+
+```text
+画面里人体发生位移
+        ↓
+结合人体时序特征与相机角速度
+        ↓
+判断画面运动来自相机还是人体
+        ↓
+相机转、人体原地不动 -> pred_vel 接近 0
+人体真实走动         -> pred_vel 不为 0
+```
+
+之后，WHAM 将根部局部速度旋转到世界坐标并逐帧累积：
+
+```python
+vel_world = root_rotation @ root_velocity
+trans_world = cumsum(vel_world)
+```
+
+对应实现：[utils.py](lib/models/layers/utils.py#L6)。标准 WHAM 最终尝试恢复的是：
+
+```text
+人体世界根姿态 + 人体世界根位移 + 相对于根部的各关节动作
+```
+
+轨迹细化阶段还会根据脚部接触预测修正根速度，以降低站立时的滑脚和根部漂移，见 [utils.py](lib/models/layers/utils.py#L31)。
+
+### 3. 当前集成链路没有启用动态相机补偿
+
+当前 `run.ps1` 启动的是 [handle_wham_gmr.py](handle_wham_gmr.py#L2472) 中的流式实现。该实现直接将相机角速度设为零：
+
+```python
+cam_angvel = torch.zeros((1, norm_kp2d.shape[1], 6), device=device)
+```
+
+调用 WHAM 时还设置了：
+
+```python
+refine_traj=False
+```
+
+对应实现：[handle_wham_gmr.py](handle_wham_gmr.py#L1249)。
+
+| 能力 | 当前集成链路状态 |
+| --- | --- |
+| DPVO 动态相机旋转补偿 | 未启用，`cam_angvel=0` |
+| WHAM 足部接触轨迹细化 | 未启用，`refine_traj=False` |
+| 人体时序姿态估计 | 已启用 |
+| 人体根方向/根速度预测 | 已启用，但输入假设相机没有角运动 |
+| 人物裁剪和 2D 关键点归一化 | 已启用 |
+
+因此，当前集成链路**不能保证**面对任意移动镜头时人体世界根部仍然稳定。当镜头变化较大时，WHAM 可能把一部分相机运动误判为人体平移或转身。
+
+即使没有动态相机补偿，局部动作仍可能比较准确，主要因为：
+
+- 人体被持续跟踪，并按每帧人物框归一化；
+- 归一化后的关键点更突出肩、肘、髋、膝等关节之间的相对构型；
+- WHAM 的预训练时序先验能够过滤一部分观察视角变化；
+- 局部骨架动作通常比绝对世界根位移更容易估计。
+
+不过关键点归一化并未完全删除人物位置：`Normalizer` 还会把检测框中心和尺度拼接到输入特征中。因此 WHAM 仍能利用人物在画面中的位置和大小估计根运动。
+
+《Plan.md》中“将相机方向估计与人体朝向估计分开”目前属于 **P2 改进方向**，不是已经在集成流式链路中完整实现的能力，见 [Plan.md](Plan.md#L175)。标准离线 API 具有 DPVO 接口，见 [wham_api.py](wham_api.py#L92)，但当前 `run.ps1` 没有走这条 API。
+
+### 4. WHAM 输出如何进入 GMR
+
+WHAM 输出可以分成局部人体动作和全局根运动两类：
+
+| WHAM 输出 | 含义 |
+| --- | --- |
+| `poses_body` | 各人体关节相对于父关节的动作 |
+| `poses_root_world` | 人体根部在世界坐标系中的方向 |
+| `trans_world` | 人体根部世界坐标位移 |
+| `poses_root_cam`、`trans_cam` | 相机坐标系下的人体状态 |
+
+当前集成代码优先使用世界坐标结果：
+
+```python
+global_orient_global = poses_root_world
+transl_global = trans_world
+```
+
+只有世界坐标结果不存在时，才退回 `poses_root_cam` 和 `trans_cam`，见 [handle_wham_gmr.py](handle_wham_gmr.py#L789)。
+
+随后执行固定坐标系转换：
+
+```text
+WHAM Y-up -> MuJoCo/GMR Z-up
+```
+
+```python
+root_orient = R_fix * root_orient
+trans = trans @ R_fix.T
+```
+
+对应实现：[handle_wham_gmr.py](handle_wham_gmr.py#L257)。该变换只负责统一坐标轴，不负责消除逐帧相机运动。
+
+转换后的 `body_pose`、`global_orient`、`transl` 和 `betas` 被送入 SMPL-X，计算每个人体关节的全局位置和全局旋转，再传给 GMR，见 [handle_wham_gmr.py](handle_wham_gmr.py#L1443)。
+
+### 5. GMR 不负责“学习”，而是逐帧求解 IK
+
+GMR 当前运行时没有训练神经网络，它执行的是运动学重定向：
+
+```text
+SMPL-X 人体关节目标
+        ↓
+人体与机器人骨架比例缩放
+        ↓
+坐标方向和零位偏置
+        ↓
+为机器人各 body 设置位置/方向目标
+        ↓
+Mink 逆运动学迭代求解
+        ↓
+机器人 qpos
+```
+
+对应实现：[motion_retarget.py](general_motion_retargeting/motion_retarget.py#L159) 和 [motion_retarget.py](general_motion_retargeting/motion_retarget.py#L182)。
+
+对于灵龙 2，GMR 配置明确建立以下映射：
+
+```text
+人体 pelvis -> 机器人 base_link
+```
+
+| IK 阶段 | 根部位置权重 | 根部方向权重 |
+| --- | ---: | ---: |
+| `ik_match_table1` | 100 | 10 |
+| `ik_match_table2` | 100 | 5 |
+
+配置位置：[smplx_to_linglong2.json](general_motion_retargeting/ik_configs/smplx_to_linglong2.json#L27)。较高的位置权重说明 GMR 会主动让机器人根部跟随人体骨盆目标，而不是忽略或锁死根部。
+
+灵龙 2 的 `base_link` 也具有自由根关节：
+
+```xml
+<body name="base_link" pos="0 0 0.9">
+  <freejoint name="base_free" />
+</body>
+```
+
+见 [LingLong2.0.xml](assets/LingLong2.0/LingLong2.0.xml#L37)。`freejoint` 表示根部具有 3 个平移和 3 个旋转自由度。
+
+最终 `qpos` 的数据结构为：
+
+| 索引 | 内容 |
+| --- | --- |
+| `qpos[0:3]` | 机器人根部世界位置 |
+| `qpos[3:7]` | 机器人根部世界旋转四元数 |
+| `qpos[7:]` | 机器人各驱动关节角 |
+
+因此，根部运动没有从数据中被删除。
+
+### 6. 为什么预览中机器人看起来始终不动
+
+当前 `run.ps1` 默认配置为：
+
+```text
+CAMERA_FOLLOW=1
+ROOT_ORIGIN_OFFSET=0
+```
+
+见 [run.ps1](run.ps1#L228) 和 [run.ps1](run.ps1#L258)。
+
+当 `CAMERA_FOLLOW=1` 时，viewer 每一帧都会根据机器人当前包围盒重新设置 MuJoCo 相机的观察中心：
+
+```python
+lookat = robot_bounds_center
+camera.lookat = lookat
+```
+
+对应实现：[robot_motion_viewer.py](general_motion_retargeting/robot_motion_viewer.py#L251)。最终视觉效果可能是：
+
+```text
+机器人在世界坐标中移动
+        +
+预览相机同步跟随机器人
+        =
+机器人在输出视频中始终接近画面中央
+```
+
+所以，“画面中根部看起来不动”不能证明 `qpos[:3]` 没有变化。
+
+### 7. `ROOT_ORIGIN_OFFSET` 也不是根部锁定
+
+启用 `root_origin_offset` 时，在线后处理器只会记录首帧根部水平位置并从后续帧中减去：
+
+```python
+if self.xy_origin is None:
+    self.xy_origin = q[:2].copy()
+q[:2] -= self.xy_origin
+```
+
+这只是把首帧位置平移到坐标原点，后续相对位移仍然保留：
+
+```text
+处理前首帧 XY = (12.3, -4.5)
+处理后首帧 XY = (0.0, 0.0)
+后续帧 XY     = 相对首帧的真实位移
+```
+
+当前 `run.ps1` 默认 `ROOT_ORIGIN_OFFSET=0`，所以集成链路默认连首帧原点平移也不做。离线 `scripts/smplx_to_robot.py` 默认启用它，但同样不会逐帧锁定根部。
+
+后处理中的指数平滑和贴地高度调整也只会让根运动更连续、修正 `q[2]` 高度，不会把每帧的 `q[:3]` 强制设为固定值。
+
+### 8. 如何验证机器人根部是否真的移动
+
+不要只看输出视频，应同时检查数值结果：
+
+| 检查方法 | 判断依据 |
+| --- | --- |
+| 查看 CSV | 比较多帧的前 3 列；数值变化说明根位置在移动 |
+| 查看 PKL | 检查 `root_pos` 的逐帧变化、累计路径长度和速度 |
+| 关闭预览跟随 | 设置 `CAMERA_FOLLOW=0` 后重新生成视频，观察机器人相对地面的移动 |
+| 区分位置与方向 | `qpos[0:3]` 不变只表示位置固定，还需检查 `qpos[3:7]` 是否发生根旋转 |
+| 对照 WHAM 中间结果 | 分别检查 `trans_cam`、`trans_world`、`poses_root_cam` 和 `poses_root_world` |
+
+推荐统计以下指标：
+
+```text
+root_xy_range = max(root_xy) - min(root_xy)
+root_z_range  = max(root_z) - min(root_z)
+root_path_len = sum(norm(root_pos[t] - root_pos[t - 1]))
+```
+
+如果 `root_path_len` 明显大于零，但输出画面中的机器人始终居中，基本可以判断是预览相机跟随造成的视觉效果。
+
+### 9. 如果需求是真正“固定根部，只迁移局部动作”
+
+当前项目没有提供严格的根部锁定。若比赛或部署确实需要机器人原地模仿，应明确选择锁定范围：
+
+| 策略 | 处理方式 | 适用场景 |
+| --- | --- | --- |
+| 只锁水平位置 | 固定 `q[0:2]`，保留高度和根旋转 | 原地屈膝、转身、上肢动作 |
+| 锁水平位置和根朝向 | 固定 `q[0:2]` 与根 yaw，保留贴地高度 | 始终面向固定方向的动作模仿 |
+| 完全锁根 | 固定 `q[0:3]` 和 `q[3:7]`，只输出 `q[7:]` | 固定基座或只评分驱动关节的任务 |
+| 保留完整根运动 | 不锁根，使用 WHAM/GMR 根轨迹 | 行走、转身和位移动作 |
+
+根部锁定应作为明确、可配置的后处理或 IK 约束实现，不能依赖预览相机跟随产生的视觉效果。实现前还需要确认比赛评分是否包含浮动根：如果只评估驱动关节角，锁根可能合理；如果需要复现人物的行走轨迹，锁根会丢失关键动作信息。
+
+### 10. 当前能力边界与后续改进
+
+| 项目 | 当前事实 | 建议 |
+| --- | --- | --- |
+| 输入相机旋转解耦 | 标准离线 WHAM 有 DPVO 接口，集成流式链路未接入 | 将真实 `cam_angvel` 接入 `wham_thread()` |
+| 输入相机平移解耦 | `convert_dpvo_to_cam_angvel()` 不使用 DPVO 平移 | 单独评估相机平移、变焦和根深度漂移 |
+| 足部接触轨迹细化 | 集成链路设置 `refine_traj=False` | 评估性能开销后启用，或实现在线等价方案 |
+| 根部锁定 | 当前没有硬锁定 | 根据评分协议增加显式、可配置的根部约束 |
+| 预览判断 | 默认相机跟随会掩盖世界位移 | 调试时关闭相机跟随，同时检查数值输出 |
+| `Plan.md` 描述 | “相机方向与人体朝向分开”属于规划目标 | 在实验记录中明确标注“已实现/未实现” |
+
+### 一句话记忆
+
+```text
+WHAM 负责估计人体动作和根轨迹；
+GMR 负责用 IK 把人体目标转换成机器人 qpos；
+MuJoCo 相机只负责“怎么看”；
+当前集成流式链路没有启用 DPVO 相机角速度，机器人看起来原地不等于根部真的被锁住。
+```
