@@ -31,7 +31,34 @@
 | 机器人 | 仅灵龙 2.0，使用组委会提供的 URDF/MJCF | 几何、关节限位、碰撞和接触阈值以该模型为准 |
 | 开源算法 | 允许 | 记录代码版本、权重来源、许可证及 SHA256 |
 
-### 1.2 当前可确认的结果
+### 1.2 执行环境门槛
+
+本项目的 WHAM、GMR、benchmark、测试和性能测量统一运行在 Conda 环境 `wham_gmr` 中。环境不满足时，不得把运行结果、失败信息或性能数据纳入实验结论。
+
+每次运行项目、测试或 benchmark 前，先确认解释器来自目标环境：
+
+```powershell
+conda activate wham_gmr
+python -c "import os, sys; assert os.environ.get('CONDA_DEFAULT_ENV') == 'wham_gmr'; print(sys.executable)"
+```
+
+在未激活环境或脚本由外部进程启动时，使用显式环境调用：
+
+```powershell
+conda run --no-capture-output -n wham_gmr python -c "import os, sys; assert os.environ.get('CONDA_DEFAULT_ENV') == 'wham_gmr'; print(sys.executable)"
+conda run --no-capture-output -n wham_gmr python -m pytest -q tests/test_ground_clearance.py
+```
+
+执行规范如下：
+
+| 规则 | 要求 |
+| --- | --- |
+| Python/pytest | 使用 `wham_gmr` 环境中的 `python` 和 `python -m pytest`；禁止直接调用系统 `python` 或 `pytest` |
+| 项目入口 | `demo.py`、`handle_wham_gmr.py`、`scripts/` 和 benchmark 均通过已确认的 `wham_gmr` 解释器启动 |
+| 结果记录 | 报告记录 `CONDA_DEFAULT_ENV`、`sys.executable`、Python 版本、关键依赖版本和 Git commit |
+| 环境失败 | 环境检查失败时立即停止，不将该次输出与 B84 或候选版本比较 |
+
+### 1.3 当前可确认的结果
 
 | 证据 | 当前事实 | 解释边界 |
 | --- | --- | --- |
