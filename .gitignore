@@ -91,6 +91,8 @@ MUJOCO_LOG.TXT
 
 # Session files
 session*.json
+.worktrees/
+.superpowers/
 
 # Temporary files
 *.tmp
