@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "identity": "B84-reproduced",
+  "provenance": {
+    "kind": "current_code_rerun",
+    "code_version": "resolved at report time from the checked-out Git commit",
+    "model_version": "current repository assets",
+    "model_weights": null
+  },
+  "input_assumptions": {
+    "source_motion": null,
+    "source_motion_format": "SMPL-X motion accepted by scripts/smplx_to_robot_stream.py"
+  },
+  "robot": "linglong2",
+  "model_paths": {
+    "mujoco_xml": "assets/LingLong2.0/scene.xml",
+    "ik_config": "general_motion_retargeting/ik_configs/smplx_to_linglong2.json"
+  },
+  "artifacts": [
+    {
+      "name": "live_motion_csv",
+      "kind": "qpos_csv",
+      "path": "output/b84-reproduced/live_motion.csv"
+    },
+    {
+      "name": "retarget_metadata",
+      "kind": "retarget_metadata",
+      "path": "output/b84-reproduced/retarget_metadata.json"
+    },
+    {
+      "name": "motion_pickle",
+      "kind": "supplementary",
+      "path": "output/b84-reproduced/my_motion.pkl"
+    },
+    {
+      "name": "demo_video",
+      "kind": "supplementary",
+      "path": "output/b84-reproduced/live_stream_robot.mp4"
+    }
+  ],
+  "coordinate_conventions": {
+    "root_position_slice": "qpos[0:3]",
+    "source_quaternion_order": "wxyz",
+    "csv_quaternion_order": "xyzw",
+    "joint_count": 30,
+    "joint_order": [
+      "left_hip_pitch_joint",
+      "left_hip_roll_joint",
+      "left_hip_yaw_joint",
+      "left_knee_joint",
+      "left_ankle_pitch_joint",
+      "left_ankle_roll_joint",
+      "right_hip_pitch_joint",
+      "right_hip_roll_joint",
+      "right_hip_yaw_joint",
+      "right_knee_joint",
+      "right_ankle_pitch_joint",
+      "right_ankle_roll_joint",
+      "waist_yaw_joint",
+      "waist_pitch_joint",
+      "head_yaw_joint",
+      "head_pitch_joint",
+      "left_shoulder_pitch_joint",
+      "left_shoulder_roll_joint",
+      "left_shoulder_yaw_joint",
+      "left_elbow_joint",
+      "left_wrist_roll_joint",
+      "left_wrist_pitch_joint",
+      "left_wrist_yaw_joint",
+      "right_shoulder_pitch_joint",
+      "right_shoulder_roll_joint",
+      "right_shoulder_yaw_joint",
+      "right_elbow_joint",
+      "right_wrist_roll_joint",
+      "right_wrist_pitch_joint",
+      "right_wrist_yaw_joint"
+    ]
+  },
+  "expected": {
+    "fps": 30,
+    "frame_count": 661,
+    "qpos_width": 37
+  },
+  "parameters": {
+    "smooth_alpha": 0.35,
+    "height_adjust": true,
+    "root_origin_offset": false,
+    "camera_follow": true,
+    "ground_clearance": 0.075
+  },
+  "commands": {
+    "generation": "python scripts/smplx_to_robot_stream.py --robot linglong2 --smooth_alpha 0.35 --height_adjust --no-root_origin_offset --camera_follow",
+    "replay": "python scripts/vis_robot_motion.py --robot linglong2"
+  },
+  "known_values": {
+    "qpos_layout": "root position 3 + source quaternion 4 + joints 30",
+    "units": {
+      "position": "m",
+      "joint_angles": "rad"
+    }
+  },
+  "unknown_fields": [
+    "provenance.model_weights",
+    "input_assumptions.source_motion"
+  ],
+  "critical_packages": [
+    "numpy",
+    "mujoco",
+    "torch",
+    "xrobotoolkit_sdk"
+  ]
+}

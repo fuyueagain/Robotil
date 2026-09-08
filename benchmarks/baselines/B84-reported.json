@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "identity": "B84-reported",
+  "provenance": {
+    "kind": "tracked_official_submission_artifacts",
+    "submission_directory": "大师赛第一期赛题1—跑得快-王莹莹—18540293911",
+    "code_version": null,
+    "model_version": null,
+    "model_weights": null
+  },
+  "input_assumptions": {
+    "source_video": null,
+    "source_motion_format": null
+  },
+  "robot": "linglong2",
+  "model_paths": {
+    "historical_mujoco_xml": null,
+    "historical_ik_config": null
+  },
+  "artifacts": [
+    {
+      "name": "live_motion_csv",
+      "kind": "qpos_csv",
+      "path": "大师赛第一期赛题1—跑得快-王莹莹—18540293911/live_motion.csv"
+    },
+    {
+      "name": "retarget_metadata",
+      "kind": "retarget_metadata",
+      "path": "大师赛第一期赛题1—跑得快-王莹莹—18540293911/retarget_metadata.json"
+    },
+    {
+      "name": "motion_pickle",
+      "kind": "supplementary",
+      "path": "大师赛第一期赛题1—跑得快-王莹莹—18540293911/my_motion.pkl"
+    },
+    {
+      "name": "demo_video",
+      "kind": "supplementary",
+      "path": "大师赛第一期赛题1—跑得快-王莹莹—18540293911/live_stream_robot.mp4"
+    }
+  ],
+  "coordinate_conventions": {
+    "root_position_slice": "qpos[0:3]",
+    "source_quaternion_order": "wxyz",
+    "csv_quaternion_order": "xyzw",
+    "joint_count": 30,
+    "joint_order": [
+      "left_hip_pitch_joint",
+      "left_hip_roll_joint",
+      "left_hip_yaw_joint",
+      "left_knee_joint",
+      "left_ankle_pitch_joint",
+      "left_ankle_roll_joint",
+      "right_hip_pitch_joint",
+      "right_hip_roll_joint",
+      "right_hip_yaw_joint",
+      "right_knee_joint",
+      "right_ankle_pitch_joint",
+      "right_ankle_roll_joint",
+      "waist_yaw_joint",
+      "waist_pitch_joint",
+      "head_yaw_joint",
+      "head_pitch_joint",
+      "left_shoulder_pitch_joint",
+      "left_shoulder_roll_joint",
+      "left_shoulder_yaw_joint",
+      "left_elbow_joint",
+      "left_wrist_roll_joint",
+      "left_wrist_pitch_joint",
+      "left_wrist_yaw_joint",
+      "right_shoulder_pitch_joint",
+      "right_shoulder_roll_joint",
+      "right_shoulder_yaw_joint",
+      "right_elbow_joint",
+      "right_wrist_roll_joint",
+      "right_wrist_pitch_joint",
+      "right_wrist_yaw_joint"
+    ]
+  },
+  "expected": {
+    "fps": 30,
+    "frame_count": 661,
+    "qpos_width": 37
+  },
+  "parameters": {
+    "smooth_alpha": null,
+    "height_adjust": null,
+    "root_origin_offset": null,
+    "camera_follow": null,
+    "ground_clearance": null
+  },
+  "commands": {
+    "generation": null,
+    "replay": null
+  },
+  "known_values": {
+    "qpos_layout": "root position 3 + source quaternion 4 + joints 30",
+    "units": {
+      "position": "m",
+      "joint_angles": "rad"
+    }
+  },
+  "unknown_fields": [
+    "provenance.code_version",
+    "provenance.model_version",
+    "provenance.model_weights",
+    "input_assumptions.source_video",
+    "input_assumptions.source_motion_format",
+    "model_paths.historical_mujoco_xml",
+    "model_paths.historical_ik_config",
+    "commands.generation",
+    "commands.replay",
+    "parameters.smooth_alpha",
+    "parameters.height_adjust",
+    "parameters.root_origin_offset",
+    "parameters.camera_follow",
+    "parameters.ground_clearance"
+  ],
+  "critical_packages": [
+    "numpy",
+    "mujoco",
+    "torch",
+    "xrobotoolkit_sdk"
+  ]
+}
