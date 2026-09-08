@@ -212,16 +212,17 @@ def _anchors_from_sources(sources):
 def _symmetry_signature(sample):
     point = sample["body_local_xyz"]
     axis = sample["axis"]
-    canonical_axis = tuple(axis)
-    for component in canonical_axis:
-        if abs(component) > 1e-15:
-            if component < 0.0:
-                canonical_axis = tuple(-value for value in canonical_axis)
-            break
-    mirrored_axis = (canonical_axis[0], abs(canonical_axis[1]), canonical_axis[2])
+    mirrored_axis = (axis[0], -axis[1], axis[2])
+    axis_equivalence_class = (
+        tuple(axis),
+        tuple(-value for value in axis),
+        mirrored_axis,
+        tuple(-value for value in mirrored_axis),
+    )
+    canonical_axis = max(axis_equivalence_class)
     return (
         point[0], abs(point[1]), point[2], sample["radius"], sample["half_length"],
-        *mirrored_axis,
+        *canonical_axis,
     )
 
 

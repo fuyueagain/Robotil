@@ -204,6 +204,31 @@ class FootGeometryCalibrationTests(unittest.TestCase):
 
         calibrate_foot_geometry._validate_symmetry(left, right)
 
+    def test_symmetry_accepts_y_mirror_and_reversal_when_x_is_zero(self):
+        left = {
+            "sole_samples": [{
+                "body_local_xyz": [0.1, -0.2, -0.3],
+                "radius": 0.01,
+                "half_length": 0.1,
+                "axis": [0.0, 0.7071067811865475, 0.7071067811865475],
+            }],
+        }
+        for right_axis in (
+            [0.0, -0.7071067811865475, 0.7071067811865475],
+            [0.0, 0.7071067811865475, -0.7071067811865475],
+        ):
+            with self.subTest(right_axis=right_axis):
+                right = {
+                    "sole_samples": [{
+                        "body_local_xyz": [0.1, 0.2, -0.3],
+                        "radius": 0.01,
+                        "half_length": 0.1,
+                        "axis": right_axis,
+                    }],
+                }
+
+                calibrate_foot_geometry._validate_symmetry(left, right)
+
     def test_symmetry_rejects_axis_not_equivalent_under_mirror_or_reversal(self):
         left = {
             "sole_samples": [{
